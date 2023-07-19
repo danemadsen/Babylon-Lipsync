@@ -2,7 +2,7 @@ import bpy
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import PointerProperty, StringProperty, IntProperty
 from bpy.types import PropertyGroup
-from . import op_blubber_rhubarb
+from . import op_blender_rhubarb
 
 class MyProperties(PropertyGroup):
 
