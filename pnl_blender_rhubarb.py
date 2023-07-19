@@ -42,31 +42,26 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        shape_keys = context.object.data.shape_keys.key_blocks
         scene = context.scene
         my_tool = scene.my_tool
 
-        if shape_keys:
-            row = layout.row(align=True)
-            row.prop(my_tool, 'sound_file', text='Sound file')
 
-            row = layout.row(align=True)
-            row.prop(my_tool, 'dialog_file', text='Dialog file')
+        row = layout.row(align=True)
+        row.prop(my_tool, 'sound_file', text='Sound file')
 
+        row = layout.row(align=True)
+        row.prop(my_tool, 'dialog_file', text='Dialog file')
+
+        row = layout.row()
+        row.prop(my_tool, 'start_frame', text='Start frame')
+
+        row = layout.row()
+
+        if not (context.preferences.addons[__package__].preferences.executable_path):
+            row.label(text="Please set rhubarb executable location in addon preferences")
             row = layout.row()
-            row.prop(my_tool, 'start_frame', text='Start frame')
 
-            row = layout.row()
-
-            if not (context.preferences.addons[__package__].preferences.executable_path):
-                row.label(text="Please set rhubarb executable location in addon preferences")
-                row = layout.row()
-
-            row.operator(operator = "object.rhubarb_lipsync")
-
-        else:
-            row = layout.row(align=True)
-            row.label(text="Rhubarb Lipsync requires shape keys")
+        row.operator(operator = "object.rhubarb_lipsync")
 
 def register():
     bpy.utils.register_class(MyProperties)
