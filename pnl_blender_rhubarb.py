@@ -1,6 +1,32 @@
 import bpy
 from bpy_extras.io_utils import ImportHelper
-from . import  op_blender_rhubarb
+from bpy.props import PointerProperty, StringProperty, IntProperty
+from bpy.types import PropertyGroup
+from . import op_blubber_rhubarb
+
+class MyProperties(PropertyGroup):
+
+    sound_file: StringProperty(
+        name="Sound File",
+        description="Path to the sound file",
+        default="",
+        maxlen=1024,
+        subtype='FILE_PATH',
+    )
+
+    dialog_file: StringProperty(
+        name="Dialog File",
+        description="Path to the dialog file",
+        default="",
+        maxlen=1024,
+        subtype='FILE_PATH',
+    )
+
+    start_frame: IntProperty(
+        name="Start Frame",
+        description="Start frame for the lip-sync",
+        default=0,
+    )
 
 class RhubarbLipsyncPanel(bpy.types.Panel):
     bl_idname = "DATA_PT_rhubarb_lipsync"
@@ -17,18 +43,18 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         shape_keys = context.object.data.shape_keys.key_blocks
+        scene = context.scene
+        my_tool = scene.my_tool
 
         if shape_keys:
-            prop = context.object.data.shape_keys.mouth_shapes
+            row = layout.row(align=True)
+            row.prop(my_tool, 'sound_file', text='Sound file')
 
             row = layout.row(align=True)
-            row.prop(prop, 'sound_file', text='Sound file')
-
-            row = layout.row(align=True)
-            row.prop(prop, 'dialog_file', text='Dialog file')
+            row.prop(my_tool, 'dialog_file', text='Dialog file')
 
             row = layout.row()
-            row.prop(prop, 'start_frame', text='Start frame')
+            row.prop(my_tool, 'start_frame', text='Start frame')
 
             row = layout.row()
 
@@ -43,7 +69,14 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
             row.label(text="Rhubarb Lipsync requires shape keys")
 
 def register():
+    bpy.utils.register_class(MyProperties)
+    bpy.types.Scene.my_tool = PointerProperty(type=MyProperties)
     bpy.utils.register_class(RhubarbLipsyncPanel)
 
 def unregister():
     bpy.utils.unregister_class(RhubarbLipsyncPanel)
+    del bpy.types.Scene.my_tool
+    bpy.utils.unregister_class(MyProperties)
+
+if __name__ == "__main__":
+    register()

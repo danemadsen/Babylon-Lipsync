@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import IntProperty, FloatProperty
+from bpy.props import IntProperty, FloatProperty, StringProperty
 import blf
 import bgl
 import io
@@ -18,121 +18,46 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
     cue_prefix = 'Mouth_'
     hold_frame_threshold = 4
+    sound_file: StringProperty(
+        name="Sound File",
+        subtype='FILE_PATH',
+    )
+    dialog_file: StringProperty(
+        name="Dialog File",
+        subtype='FILE_PATH',
+    )
 
     @classmethod
     def poll(cls, context):
         return context.preferences.addons[__package__].preferences.executable_path and \
-            context.object.data.shape_keys and \
-            context.object.data.shape_keys.mouth_shapes.sound_file
-
-
-    def modal(self, context, event):
-        wm = context.window_manager
-        wm.progress_update(50)
-    
-        try:
-            (stdout, stderr) = self.rhubarb.communicate(timeout=1)
-    
-            try:
-                result = json.loads(stderr)
-                if result['type'] == 'progress':
-                    print(result['log']['message'])
-                    self.message = result['log']['message']
-    
-                if result['type'] == 'failure':
-                    self.report(type={'ERROR'}, message=result['reason'])
-                    return {'CANCELLED'}
-    
-            except ValueError:
-                pass
-            except TypeError:
-                pass
-            except json.decoder.JSONDecodeError:
-                pass
-    
-            self.rhubarb.poll()
-    
-            if self.rhubarb.returncode is not None:
-                wm.event_timer_remove(self._timer)
-    
-                results = json.loads(stdout)
-                fps = context.scene.render.fps
-                lib = context.object.data.shape_keys
-                last_frame = 0
-                prev_shape = None
-    
-                for cue in results['mouthCues']:
-                    frame_num = round(cue['start'] * fps) + lib.mouth_shapes.start_frame
-                    mouth_shape = 'mouth_' + cue['value'].lower()
-                    if mouth_shape in context.object.data.shape_keys.key_blocks:
-                        shape_key = context.object.data.shape_keys.key_blocks[mouth_shape]
-    
-                        # Set the shape key value and keyframe it
-                        shape_key.value = 1.0
-                        shape_key.keyframe_insert(data_path='value', frame=frame_num)
-    
-                    # Reset the value for all other shape keys
-                    for key in context.object.data.shape_keys.key_blocks:
-                        if key != shape_key:
-                            key.value = 0.0
-                            key.keyframe_insert(data_path='value', frame=frame_num)
-    
-                wm.progress_end()
-                return {'FINISHED'}
-    
-            return {'PASS_THROUGH'}
-        except subprocess.TimeoutExpired as ex:
-            return {'PASS_THROUGH'}
-        except json.decoder.JSONDecodeError:
-            print(stdout)
-            print("Error!!!")
-            wm.progress_end()
-            return {'CANCELLED'}
-        except Exception as ex:
-            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-            print(template.format(type(ex).__name__, ex.args))
-            wm.progress_end()
-            return {'CANCELLED'}
-
-    def set_keyframes(self, context, frame):
-        for bone in context.selected_pose_bones:
-            bone.keyframe_insert(data_path='location', frame=frame)
-            if bone.rotation_mode == 'QUATERNION':
-                bone.keyframe_insert(data_path='rotation_quaternion', frame=frame)
-            else:
-                bone.keyframe_insert(data_path='rotation_euler', frame=frame)
-            bone.keyframe_insert(data_path='scale', frame=frame)
+            context.object.data.shape_keys
 
     def invoke(self, context, event):
         preferences = context.preferences
         addon_prefs = preferences.addons[__package__].preferences
 
-        inputfile = bpy.path.abspath(context.object.data.shape_keys.mouth_shapes.sound_file)
-        dialogfile = bpy.path.abspath(context.object.data.shape_keys.mouth_shapes.dialog_file)
+        inputfile = bpy.path.abspath(self.sound_file)
+        dialogfile = bpy.path.abspath(self.dialog_file)
         recognizer = bpy.path.abspath(addon_prefs.recognizer)
         executable = bpy.path.abspath(addon_prefs.executable_path)
 
-        # This is ugly, but Blender unpacks the zip without execute permission
         os.chmod(executable, 0o744)
 
         command = [executable, "-f", "json", "--machineReadable", "--extendedShapes", "GHX", "-r", recognizer, inputfile]
 
         if dialogfile:
             command.append("--dialogFile")
-            command.append(dialogfile )
+            command.append(dialogfile)
 
         self.rhubarb = subprocess.Popen(command,
                                         stdout=subprocess.PIPE, universal_newlines=True)
 
         wm = context.window_manager
         self._timer = wm.event_timer_add(2, window=context.window)
-
         wm.modal_handler_add(self)
-
         wm.progress_begin(0, 100)
 
         return {'RUNNING_MODAL'}
-
 
     def execute(self, context):
         return self.invoke(context, None)
