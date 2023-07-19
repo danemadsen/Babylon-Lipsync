@@ -19,7 +19,7 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
         shape_keys = context.object.data.shape_keys.key_blocks
 
         if shape_keys:
-            prop = context.object.pose_library.mouth_shapes
+            prop = context.object.data.shape_keys.mouth_shapes
 
             row = layout.row(align=True)
             row.prop(prop, 'sound_file', text='Sound file')

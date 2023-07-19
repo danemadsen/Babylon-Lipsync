@@ -23,7 +23,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     def poll(cls, context):
         return context.preferences.addons[__package__].preferences.executable_path and \
             context.object.data.shape_keys and \
-            context.object.pose_library.mouth_shapes.sound_file
+            context.object.data.shape_keys.mouth_shapes.sound_file
 
 
     def modal(self, context, event):
@@ -57,7 +57,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     
                 results = json.loads(stdout)
                 fps = context.scene.render.fps
-                lib = context.object.pose_library
+                lib = context.object.data.shape_keys
                 last_frame = 0
                 prev_shape = None
     
@@ -94,7 +94,6 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             wm.progress_end()
             return {'CANCELLED'}
 
-
     def set_keyframes(self, context, frame):
         for bone in context.selected_pose_bones:
             bone.keyframe_insert(data_path='location', frame=frame)
@@ -108,20 +107,20 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         preferences = context.preferences
         addon_prefs = preferences.addons[__package__].preferences
 
-        inputfile = bpy.path.abspath(context.object.pose_library.mouth_shapes.sound_file)
-        dialogfile = bpy.path.abspath(context.object.pose_library.mouth_shapes.dialog_file)
+        inputfile = bpy.path.abspath(context.object.data.shape_keys.mouth_shapes.sound_file)
+        dialogfile = bpy.path.abspath(context.object.data.shape_keys.mouth_shapes.dialog_file)
         recognizer = bpy.path.abspath(addon_prefs.recognizer)
         executable = bpy.path.abspath(addon_prefs.executable_path)
-        
+
         # This is ugly, but Blender unpacks the zip without execute permission
         os.chmod(executable, 0o744)
 
         command = [executable, "-f", "json", "--machineReadable", "--extendedShapes", "GHX", "-r", recognizer, inputfile]
-        
+
         if dialogfile:
             command.append("--dialogFile")
             command.append(dialogfile )
-        
+
         self.rhubarb = subprocess.Popen(command,
                                         stdout=subprocess.PIPE, universal_newlines=True)
 
@@ -133,6 +132,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         wm.progress_begin(0, 100)
 
         return {'RUNNING_MODAL'}
+
 
     def execute(self, context):
         return self.invoke(context, None)
