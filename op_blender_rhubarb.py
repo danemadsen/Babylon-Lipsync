@@ -22,35 +22,36 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         return context.preferences.addons[__package__].preferences.executable_path and \
-            context.selected_pose_bones and \
+            context.object.data.shape_keys and \
             context.object.pose_library.mouth_shapes.sound_file
+
 
     def modal(self, context, event):
         wm = context.window_manager
         wm.progress_update(50)
-
+    
         try:
             (stdout, stderr) = self.rhubarb.communicate(timeout=1)
-        
+    
             try:
                 result = json.loads(stderr)
                 if result['type'] == 'progress':
                     print(result['log']['message'])
                     self.message = result['log']['message']
-
+    
                 if result['type'] == 'failure':
                     self.report(type={'ERROR'}, message=result['reason'])
                     return {'CANCELLED'}
-
+    
             except ValueError:
                 pass
             except TypeError:
                 pass
             except json.decoder.JSONDecodeError:
                 pass
-            
+    
             self.rhubarb.poll()
-
+    
             if self.rhubarb.returncode is not None:
                 wm.event_timer_remove(self._timer)
     
@@ -58,34 +59,27 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 fps = context.scene.render.fps
                 lib = context.object.pose_library
                 last_frame = 0
-                prev_pose = 0
-
+                prev_shape = None
+    
                 for cue in results['mouthCues']:
                     frame_num = round(cue['start'] * fps) + lib.mouth_shapes.start_frame
-                    
-                    # add hold key if time since last key is large
-                    if frame_num - last_frame > self.hold_frame_threshold:
-                        print("hold frame: {0}".format(frame_num- self.hold_frame_threshold))
-                        bpy.ops.poselib.apply_pose(pose_index=prev_pose)
-                        self.set_keyframes(context, frame_num - self.hold_frame_threshold)
-
-                    print("start: {0} frame: {1} value: {2}".format(cue['start'], frame_num , cue['value']))
-
                     mouth_shape = 'mouth_' + cue['value'].lower()
-                    if mouth_shape in context.object.pose_library.mouth_shapes:
-                        pose_index = context.object.pose_library.mouth_shapes[mouth_shape]
-                    else:
-                        pose_index = 0
-
-                    bpy.ops.poselib.apply_pose(pose_index=pose_index)
-                    self.set_keyframes(context, frame_num)
-                    
-
-                    prev_pose = pose_index
-                    last_frame = frame_num
-                    wm.progress_end()
+                    if mouth_shape in context.object.data.shape_keys.key_blocks:
+                        shape_key = context.object.data.shape_keys.key_blocks[mouth_shape]
+    
+                        # Set the shape key value and keyframe it
+                        shape_key.value = 1.0
+                        shape_key.keyframe_insert(data_path='value', frame=frame_num)
+    
+                    # Reset the value for all other shape keys
+                    for key in context.object.data.shape_keys.key_blocks:
+                        if key != shape_key:
+                            key.value = 0.0
+                            key.keyframe_insert(data_path='value', frame=frame_num)
+    
+                wm.progress_end()
                 return {'FINISHED'}
-
+    
             return {'PASS_THROUGH'}
         except subprocess.TimeoutExpired as ex:
             return {'PASS_THROUGH'}
@@ -99,6 +93,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             print(template.format(type(ex).__name__, ex.args))
             wm.progress_end()
             return {'CANCELLED'}
+
 
     def set_keyframes(self, context, frame):
         for bone in context.selected_pose_bones:
