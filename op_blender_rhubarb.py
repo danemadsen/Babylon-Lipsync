@@ -8,6 +8,7 @@ import select
 import subprocess
 from threading import Thread
 from queue import Queue, Empty
+import tempfile
 import json
 import os
 
@@ -43,10 +44,6 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     hold_frame_threshold = 4
     sound_file: StringProperty(
         name="Sound File",
-        subtype='FILE_PATH',
-    )
-    dialog_file: StringProperty(
-        name="Dialog File",
         subtype='FILE_PATH',
     )
 
@@ -92,7 +89,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 last_shape_key_name = None
 
                 for cue in results['mouthCues']:
-                    frame_num = round(cue['start'] * fps)
+                    frame_num = round(cue['start'] * fps) + context.scene.my_tool.start_frame
                     shape_key_name = translate_phoneme(context, cue['value'])
                     print("start: {0} frame: {1} value: {2} shape key: {3}".format(cue['start'], frame_num , cue['value'], shape_key_name))
 
@@ -133,29 +130,32 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     def invoke(self, context, event):
         preferences = context.preferences
         addon_prefs = preferences.addons[__package__].preferences
-    
+
         inputfile = bpy.path.abspath(context.scene.my_tool.sound_file)
         if not os.path.isfile(inputfile):
             print(f"File does not exist: {inputfile}")
-        dialogfile = bpy.path.abspath(context.scene.my_tool.dialog_file)
         recognizer = bpy.path.abspath(addon_prefs.recognizer)
         executable = bpy.path.abspath(addon_prefs.executable_path)
-    
+
         os.chmod(executable, 0o744)
-    
+
         command = [executable, "-f", "json", "--machineReadable", "--extendedShapes", "GHX", "-r", recognizer, inputfile]
-    
-        if dialogfile:
-            command.append("--dialogFile")
-            command.append(dialogfile)
-    
+
+        # Write the dialog text to a temporary file and use it as dialogfile
+        with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp:
+            temp.write(context.scene.my_tool.dialog_text)
+            dialogfile = temp.name
+
+        command.append("--dialogFile")
+        command.append(dialogfile)
+
         self.rhubarb = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-    
+
         wm = context.window_manager
         self._timer = wm.event_timer_add(2, window=context.window)
         wm.modal_handler_add(self)
         wm.progress_begin(0, 100)
-    
+
         return {'RUNNING_MODAL'}
 
     def execute(self, context):

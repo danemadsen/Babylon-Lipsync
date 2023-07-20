@@ -14,12 +14,11 @@ class MyProperties(PropertyGroup):
         subtype='FILE_PATH',
     )
 
-    dialog_file: StringProperty(
-        name="Dialog File",
-        description="Path to the dialog file",
+    dialog_text: StringProperty(
+        name="Dialog",
+        description="Enter the dialog here",
         default="",
         maxlen=1024,
-        subtype='FILE_PATH',
     )
 
     start_frame: IntProperty(
@@ -115,7 +114,7 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
         row.prop(my_tool, 'sound_file', text='Sound file')
 
         row = layout.row(align=True)
-        row.prop(my_tool, 'dialog_file', text='Dialog file')
+        row.prop(my_tool, 'dialog_text', text='Dialog')
 
         row = layout.row()
         row.prop(my_tool, 'start_frame', text='Start frame')
