@@ -32,63 +32,57 @@ class MyProperties(PropertyGroup):
         items = [(str(index), key.name, key.name) for index, key in enumerate(obj.data.shape_keys.key_blocks)]
         return items
 
-    phoneme_REST: EnumProperty(
-        name="Phoneme rest",
-        description="Shape key for the 'rest' phoneme",
+    phoneme_A: EnumProperty(
+        name="Phoneme A",
+        description="Closed mouth for the \"P\", \"B\", and \"M\" sounds. This is almost identical to the 'X' shape, but there is ever-so-slight pressure between the lips.",
         items=get_shape_keys
     )
 
-    phoneme_AI: EnumProperty(
-        name="Phoneme AI",
-        description="Shape key for the 'AI' phoneme",
+    phoneme_B: EnumProperty(
+        name="Phoneme B",
+        description="Slightly open mouth with clenched teeth. This mouth shape is used for most consonants (\"K\", \"S\", \"T\", etc.). It's also used for some vowels such as the \"EE\" sound in bee.",
+        items=get_shape_keys
+    )
+
+    phoneme_C: EnumProperty(
+        name="Phoneme C",
+        description="Open mouth. This mouth shape is used for vowels like \"EH\" as in men and \"AE\" as in bat. It's also used for some consonants, depending on context. This shape is also used as an in-between when animating from 'A' or 'B' to 'D'.",
+        items=get_shape_keys
+    )
+
+    phoneme_D: EnumProperty(
+        name="Phoneme D",
+        description="Wide open mouth. This mouth shapes is used for vowels like \"AA\" as in father.",
         items=get_shape_keys
     )
 
     phoneme_E: EnumProperty(
         name="Phoneme E",
-        description="Shape key for the 'E' phoneme",
+        description="Slightly rounded mouth. This mouth shape is used for vowels like \"AO\" as in off and \"ER\" as in bird.",
         items=get_shape_keys
     )
 
-    phoneme_ETC: EnumProperty(
-        name="Phoneme etc",
-        description="Shape key for the 'etc' phoneme",
+    phoneme_F: EnumProperty(
+        name="Phoneme F",
+        description="Puckered lips. This mouth shape is used for \"UW\" as in you, \"OW\" as in show, and \"W\" as in way.",
         items=get_shape_keys
     )
 
-    phoneme_FV: EnumProperty(
-        name="Phoneme FV",
-        description="Shape key for the 'FV' phoneme",
+    phoneme_G: EnumProperty(
+        name="Phoneme G",
+        description="Upper teeth touching the lower lip for \"F\" as in for and \"V\" as in very.",
         items=get_shape_keys
     )
 
-    phoneme_L: EnumProperty(
-        name="Phoneme L",
-        description="Shape key for the 'L' phoneme",
+    phoneme_H: EnumProperty(
+        name="Phoneme H",
+        description="This shape is used for long \"L\" sounds, with the tongue raised behind the upper teeth.",
         items=get_shape_keys
     )
 
-    phoneme_MBP: EnumProperty(
-        name="Phoneme MBP",
-        description="Shape key for the 'MBP' phoneme",
-        items=get_shape_keys
-    )
-
-    phoneme_O: EnumProperty(
-        name="Phoneme O",
-        description="Shape key for the 'O' phoneme",
-        items=get_shape_keys
-    )
-
-    phoneme_U: EnumProperty(
-        name="Phoneme U",
-        description="Shape key for the 'U' phoneme",
-        items=get_shape_keys
-    )
-
-    phoneme_WQ: EnumProperty(
-        name="Phoneme WQ",
-        description="Shape key for the 'WQ' phoneme",
+    phoneme_X: EnumProperty(
+        name="Phoneme X",
+        description="Shape key for the 'rest' phoneme",
         items=get_shape_keys
     )
 
@@ -122,34 +116,31 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
         layout.label(text="Phoneme to Shape Key Mapping:")
 
         row = layout.row()
-        row.prop(my_tool, 'phoneme_AI', text='AI')
+        row.prop(my_tool, 'phoneme_A', text='A')
+
+        row = layout.row()
+        row.prop(my_tool, 'phoneme_B', text='B')
+
+        row = layout.row()
+        row.prop(my_tool, 'phoneme_C', text='C')
+
+        row = layout.row()
+        row.prop(my_tool, 'phoneme_D', text='D')
 
         row = layout.row()
         row.prop(my_tool, 'phoneme_E', text='E')
 
         row = layout.row()
-        row.prop(my_tool, 'phoneme_ETC', text='ETC')
+        row.prop(my_tool, 'phoneme_F', text='F')
 
         row = layout.row()
-        row.prop(my_tool, 'phoneme_FV', text='FV')
+        row.prop(my_tool, 'phoneme_G', text='G')
 
         row = layout.row()
-        row.prop(my_tool, 'phoneme_L', text='L')
+        row.prop(my_tool, 'phoneme_H', text='H')
 
         row = layout.row()
-        row.prop(my_tool, 'phoneme_MBP', text='MBP')
-
-        row = layout.row()
-        row.prop(my_tool, 'phoneme_O', text='O')
-
-        row = layout.row()
-        row.prop(my_tool, 'phoneme_REST', text='REST')
-
-        row = layout.row()
-        row.prop(my_tool, 'phoneme_U', text='U')
-
-        row = layout.row()
-        row.prop(my_tool, 'phoneme_WQ', text='WQ')
+        row.prop(my_tool, 'phoneme_X', text='X')
 
         row = layout.row()
 

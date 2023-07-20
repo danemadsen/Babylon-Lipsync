@@ -13,15 +13,15 @@ import json
 import os
 
 phoneme_translation_dict = {
-    'X': 'phoneme_REST',
-    'A': 'phoneme_AI',
-    'B': 'phoneme_E',
-    'C': 'phoneme_ETC',
-    'D': 'phoneme_O',
-    'E': 'phoneme_U',
-    'F': 'phoneme_FV',
-    'G': 'phoneme_WQ',
-    'H': 'phoneme_L'
+    'A': 'phoneme_A',
+    'B': 'phoneme_B',
+    'C': 'phoneme_C',
+    'D': 'phoneme_D',
+    'E': 'phoneme_E',
+    'F': 'phoneme_F',
+    'G': 'phoneme_G',
+    'H': 'phoneme_H',
+    'X': 'phoneme_X'
 }
 
 def translate_phoneme(context, phoneme):
