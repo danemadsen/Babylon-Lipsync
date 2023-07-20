@@ -33,6 +33,12 @@ class MyProperties(PropertyGroup):
         items = [(str(index), key.name, key.name) for index, key in enumerate(obj.data.shape_keys.key_blocks)]
         return items
 
+    phoneme_REST: EnumProperty(
+        name="Phoneme rest",
+        description="Shape key for the 'rest' phoneme",
+        items=get_shape_keys
+    )
+
     phoneme_AI: EnumProperty(
         name="Phoneme AI",
         description="Shape key for the 'AI' phoneme",
@@ -72,12 +78,6 @@ class MyProperties(PropertyGroup):
     phoneme_O: EnumProperty(
         name="Phoneme O",
         description="Shape key for the 'O' phoneme",
-        items=get_shape_keys
-    )
-
-    phoneme_REST: EnumProperty(
-        name="Phoneme rest",
-        description="Shape key for the 'rest' phoneme",
         items=get_shape_keys
     )
 

@@ -95,24 +95,18 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                     frame_num = round(cue['start'] * fps)
                     shape_key_name = translate_phoneme(context, cue['value'])
                     print("start: {0} frame: {1} value: {2} shape key: {3}".format(cue['start'], frame_num , cue['value'], shape_key_name))
-                
+
                     if shape_key_name:
                         # Set all shape keys to 0.0 at the start of this phoneme.
                         for key in context.object.data.shape_keys.key_blocks:
                             key.value = 0.0
                             key.keyframe_insert('value', frame=frame_num - 1)
-                
+
                         # Set the current shape key to 1.0.
                         context.object.data.shape_keys.key_blocks[shape_key_name].value = 1.0
                         context.object.data.shape_keys.key_blocks[shape_key_name].keyframe_insert('value', frame=frame_num)
-                
-                        last_shape_key_name = shape_key_name
-                
-                # Set all shape keys to 0.0 after the last phoneme.
-                for key in context.object.data.shape_keys.key_blocks:
-                    key.value = 0.0
-                    key.keyframe_insert('value', frame=frame_num + 1)
 
+                        last_shape_key_name = shape_key_name
 
                 if last_shape_key_name:
                     context.object.data.shape_keys.key_blocks[last_shape_key_name].value = 0.0
@@ -141,8 +135,6 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         addon_prefs = preferences.addons[__package__].preferences
     
         inputfile = bpy.path.abspath(context.scene.my_tool.sound_file)
-        print(f"Self.sound_file: {context.scene.my_tool.sound_file}")
-        print(f"Inputfile: {inputfile}")
         if not os.path.isfile(inputfile):
             print(f"File does not exist: {inputfile}")
         dialogfile = bpy.path.abspath(context.scene.my_tool.dialog_file)
